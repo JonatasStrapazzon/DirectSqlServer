@@ -1,6 +1,6 @@
 # Notas de versão
 
-## 1.5.0
+## 1.6.0
 
 ### Instalador e atualização automática
 - **Instalador por usuário** (`DirectSqlServer-win-Setup.exe`), sem administrador. Cria atalhos na área de trabalho e no menu Iniciar e instala o .NET 9 Desktop Runtime se faltar.

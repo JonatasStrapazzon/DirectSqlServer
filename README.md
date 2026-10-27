@@ -6,7 +6,7 @@ Aplicativo para **Windows** que restaura um backup do SQL Server em uma **base n
   <img src="docs/img/03-compactado-claro.png" alt="Janela principal do Direct SQL Server com um ZIP selecionado" width="520">
 </p>
 
-> **Versão atual: 1.5.0.** Veja o que mudou nas [notas de versão](CHANGELOG.md).
+> **Versão atual: 1.6.0.** Veja o que mudou nas [notas de versão](CHANGELOG.md).
 
 ## Sumário
 
