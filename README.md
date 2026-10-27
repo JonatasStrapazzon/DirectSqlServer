@@ -183,6 +183,18 @@ Ao lado de **Restaurar base** há o botão **Executar scripts** e um lápis para
   <img src="docs/img/09-scripts-executados-claro.png" alt="Scripts executados com sucesso, com as linhas afetadas nos detalhes" width="460">
 </p>
 
+### Executar automaticamente depois de restaurar
+
+Na caixa de opções existe **Executar os scripts SQL salvos na base restaurada** (em *Ao terminar qualquer restauração*). Marcada, o app roda os scripts salvos logo depois de **restaurar com sucesso**, sem pedir confirmação nem precisar clicar em **Executar scripts**.
+
+- **Desmarcada por padrão.** A escolha fica salva em `%APPDATA%\DirectSqlServer\preferences.xml` e continua depois de reiniciar o PC.
+- **Vale para `.bak` e para compactados.**
+- **Se os scripts falharem,** a base continua restaurada. Só os scripts são desfeitos (transação única) e o erro aparece em vermelho com os detalhes abertos.
+- **Sem scripts salvos,** o app apenas avisa que não havia nada para executar.
+- Como roda sem perguntar, confira o texto no editor (lápis) antes de marcar a opção.
+
+### Regras da execução
+
 - **Tudo ou nada:** todos os lotes rodam em **uma única transação**. Se um comando falhar, **nada é alterado**.
 - **Lotes:** uma linha só com `GO` separa lotes, como no SSMS. Sem `GO`, tudo vai em um lote.
 - **Só em base existente:** a base precisa existir e estar online. Bases de sistema (`master`, `model`, `msdb`, `tempdb`) são recusadas.
@@ -240,7 +252,7 @@ Se o serviço do SQL Server não tem permissão para ler o backup (comum em Down
 | O quê | Onde |
 |---|---|
 | Aplicativo instalado | `%LOCALAPPDATA%\DirectSqlServer` |
-| Opções de exclusão | `%APPDATA%\DirectSqlServer\preferences.xml` |
+| Opções das caixas de marcar (exclusão e scripts automáticos) | `%APPDATA%\DirectSqlServer\preferences.xml` |
 | Tema | `%APPDATA%\DirectSqlServer\theme.txt` |
 | Scripts SQL | `%APPDATA%\DirectSqlServer\scripts.sql` |
 | Registros de cada restauração | `%LOCALAPPDATA%\DirectSqlServer\Logs` (contêm nomes de bases e caminhos locais) |

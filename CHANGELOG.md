@@ -4,6 +4,7 @@
 
 ### Scripts SQL depois de restaurar
 - Novo botão **Executar scripts** e um lápis para **editar** os comandos. Eles rodam na base indicada em "Nome da nova base", todos em uma única transação (se um falhar, nada é alterado), com `GO` para separar lotes.
+- Nova opção **Executar os scripts SQL salvos na base restaurada**, desmarcada por padrão e lembrada após reiniciar o PC: roda os scripts automaticamente quando a restauração termina com sucesso. Se eles falharem, a base continua restaurada e só os scripts são desfeitos.
 - Vem com o script padrão (ambiente de homologação e e-mails de teste). Os scripts editados ficam salvos em `%APPDATA%\DirectSqlServer\scripts.sql`, mesmo após reiniciar o PC ou atualizar o app.
 
 ## 1.6.0
