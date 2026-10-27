@@ -1,5 +1,11 @@
 # Notas de versão
 
+## 1.7.0
+
+### Scripts SQL depois de restaurar
+- Novo botão **Executar scripts** e um lápis para **editar** os comandos. Eles rodam na base indicada em "Nome da nova base", todos em uma única transação (se um falhar, nada é alterado), com `GO` para separar lotes.
+- Vem com o script padrão (ambiente de homologação e e-mails de teste). Os scripts editados ficam salvos em `%APPDATA%\DirectSqlServer\scripts.sql`, mesmo após reiniciar o PC ou atualizar o app.
+
 ## 1.6.0
 
 ### Instalador e atualização automática

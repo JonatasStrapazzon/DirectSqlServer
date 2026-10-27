@@ -16,6 +16,7 @@ Aplicativo para **Windows** que restaura um backup do SQL Server em uma **base n
 - [Instalação passo a passo](#instalação-passo-a-passo)
 - [Restaurar um backup passo a passo](#restaurar-um-backup-passo-a-passo)
 - [Backup dentro de um compactado](#backup-dentro-de-um-compactado)
+- [Executar scripts SQL na base restaurada](#executar-scripts-sql-na-base-restaurada)
 - [Menu do botão direito no Explorer](#menu-do-botão-direito-no-explorer)
 - [Tema claro e escuro](#tema-claro-e-escuro)
 - [Atualizações automáticas](#atualizações-automáticas)
@@ -34,6 +35,7 @@ Aplicativo para **Windows** que restaura um backup do SQL Server em uma **base n
 - **Arrastar e soltar** um arquivo para a janela.
 - **Nunca substitui nada:** se já existir uma base com o nome escolhido, a restauração é recusada e nada é alterado.
 - **Seguro por padrão:** conecta só no SQL Server **do próprio computador**, com a **autenticação do Windows**. Não pede nem guarda senha.
+- **Scripts pós-restauração:** botão para rodar, e editar, comandos SQL na base restaurada.
 - **Menu do Explorer:** botão direito no arquivo → *Restaurar no SQL Server…* (opcional).
 - **Tema claro e escuro.**
 - **Atualização automática** com um clique.
@@ -165,6 +167,28 @@ Com um compactado selecionado, a caixa **AO RESTAURAR UM COMPACTADO** fica ativa
 
 Se o Windows não deixar criar a pasta de extração ao lado do compactado (por exemplo, em `C:\inetpub\SQLServerData`), o app pede **autorização de administrador somente nesse caso** e continua com o mesmo arquivo, nome e opções. Se você cancelar o pedido, a janela original permanece e **nada é excluído**.
 
+## Executar scripts SQL na base restaurada
+
+Ao lado de **Restaurar base** há o botão **Executar scripts** e um lápis para editá-los. Eles rodam comandos SQL na base indicada em **Nome da nova base**, por exemplo para ajustar dados logo depois de restaurar um backup de produção.
+
+1. **Veja ou altere os comandos:** clique no **lápis**. Abre uma janela com os scripts salvos (na primeira vez, o padrão do app). Edite como quiser e clique em **Salvar**. **Restaurar padrão** volta ao texto original.
+2. **Execute:** confira o nome da base e clique em **Executar scripts**. O app pede confirmação mostrando o nome da base e quantos lotes serão executados.
+3. **Resultado:** os detalhes abrem sozinhos mostrando cada lote e quantas linhas cada comando afetou.
+
+<p align="center">
+  <img src="docs/img/10-editar-scripts-claro.png" alt="Janela de edição dos scripts SQL" width="560">
+</p>
+
+<p align="center">
+  <img src="docs/img/09-scripts-executados-claro.png" alt="Scripts executados com sucesso, com as linhas afetadas nos detalhes" width="460">
+</p>
+
+- **Tudo ou nada:** todos os lotes rodam em **uma única transação**. Se um comando falhar, **nada é alterado**.
+- **Lotes:** uma linha só com `GO` separa lotes, como no SSMS. Sem `GO`, tudo vai em um lote.
+- **Só em base existente:** a base precisa existir e estar online. Bases de sistema (`master`, `model`, `msdb`, `tempdb`) são recusadas.
+- **Fica salvo:** os scripts ficam em `%APPDATA%\DirectSqlServer\scripts.sql` e continuam lá depois de reiniciar o PC e de atualizar o app.
+- **Cuidado:** os comandos alteram dados e **não dá para desfazer depois de concluídos**. Confira o nome da base antes de confirmar.
+
 ## Menu do botão direito no Explorer
 
 Opcional. No rodapé da janela, clique em **Adicionar ao menu do Windows**. Depois, no Explorer:
@@ -218,6 +242,7 @@ Se o serviço do SQL Server não tem permissão para ler o backup (comum em Down
 | Aplicativo instalado | `%LOCALAPPDATA%\DirectSqlServer` |
 | Opções de exclusão | `%APPDATA%\DirectSqlServer\preferences.xml` |
 | Tema | `%APPDATA%\DirectSqlServer\theme.txt` |
+| Scripts SQL | `%APPDATA%\DirectSqlServer\scripts.sql` |
 | Registros de cada restauração | `%LOCALAPPDATA%\DirectSqlServer\Logs` (contêm nomes de bases e caminhos locais) |
 | Cópia temporária (só quando necessária) | `%ProgramData%\DirectSqlServer-<SID>\` |
 | Falha de integração com o Explorer | `%TEMP%\DirectSqlServer-install-error.txt` |
