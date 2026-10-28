@@ -7,6 +7,7 @@
 - **Conexão travada não deixa mais a restauração parada.** Quando a conexão com o servidor do link travava sem dar erro (o app ficava em "Lendo a lista de arquivos do backup…" ou na barra parada), nada o tirava dali. Agora cada tentativa de baixar um bloco tem tempo limite (60 s, cabeçalho e corpo) e é refeita em outra conexão; as conexões do pool são renovadas com frequência.
 - **Cancelar funciona mesmo com a rede travada.** Antes, o botão não conseguia interromper a espera por dados da origem.
 - **Falha no meio da restauração limpa o que sobrou.** Se o `RESTORE` falhar antes de terminar, a base parcial `DirectSqlRestore_…` e os arquivos dela (às vezes mais de 100 GB) são removidos automaticamente, como já acontecia ao cancelar. Antes, ficavam na pasta de dados do SQL Server até serem apagados à mão.
+- **Tempo restante repetido.** A mensagem de restauração via link mostrava "faltam ~ 12 min · faltam ~ 13 min" (duas estimativas). Agora mostra só a calculada pelos bytes.
 - **Registro mais limpo.** O contador de tempo da fase de preparação ("Decorrido 00:12…") aparece só na barra de status e não é mais gravado a cada segundo no registro; a fase é registrada uma vez, com os tamanhos.
 
 ## 1.11.0 e 1.11.1
