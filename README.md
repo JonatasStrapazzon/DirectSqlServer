@@ -250,8 +250,6 @@ Com **Via link** selecionado, o app restaura **direto de um link para um ZIP**, 
 
 **Por que o início fica em 0% por alguns minutos.** Antes de ler o backup, o próprio SQL Server cria e **zera** os arquivos da nova base, com o mesmo tamanho dos arquivos originais (inclusive o log, que em alguns bancos tem dezenas de GB). Isso não depende da rede nem do app. O app mostra "Preparando a base no SQL Server (reservando e zerando X GB de dados e Y GB de log)" com o tempo decorrido. Só depois a leitura começa e aparecem a porcentagem, a velocidade e o tempo restante. Em um backup com 27 GB de dados e 26 GB de log, a preparação levou cerca de 2 minutos e a leitura de 24 GB, cerca de 4 minutos.
 
-Para encurtar a preparação dos arquivos de **dados**, ative a *inicialização instantânea de arquivos* do SQL Server (permissão do Windows "Executar tarefas de manutenção de volume" para a conta do serviço do SQL Server, e reiniciar o serviço). O arquivo de **log** continua sendo zerado. Essa é uma configuração de segurança do servidor: o app não a altera.
-
 **O que você economiza.** Hoje, com um ZIP de 50 GB e um backup de 100 GB, o pico de disco chega a cerca de 250 GB (ZIP + pasta extraída + base). Restaurando do link, o pico é só o da **base (100 GB)**.
 
 **Limites do modo link**
