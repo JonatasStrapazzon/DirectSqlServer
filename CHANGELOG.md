@@ -15,7 +15,7 @@ Reúne as mudanças desde a 1.8.0 (as versões 1.9.x e 1.10.0 não foram publica
 - As opções (exclusão de arquivos, executar scripts, reduzir o log) ficam sob um título **Configurações** que expande e recolhe. Vem recolhido por padrão e mostra quantas opções estão ativas ("Configurações · 2 opções ativas"). A janela fica mais curta.
 
 ### Reduzir o arquivo de log
-- Nova opção, desmarcada por padrão e lembrada após reiniciar o PC: depois de restaurar, muda a base para recuperação SIMPLE e reduz o log para cerca de 256 MB (até 3 passadas de `DBCC SHRINKFILE`). Mostra o tamanho antes e depois. Não use em base de produção com backups de log.
+- Nova opção, sempre desmarcada ao abrir o app (não é lembrada, porque muda o modelo de recuperação): depois de restaurar, muda a base para recuperação SIMPLE e reduz o log para cerca de 256 MB (até 3 passadas de `DBCC SHRINKFILE`). Mostra o tamanho antes e depois. Não use em base de produção com backups de log.
 
 ### Restauração pelo link bem mais rápida, com tempo restante
 - A aba **Link (experimental)** passou a baixar **vários blocos do ZIP ao mesmo tempo** (8 conexões) e a descompactar em uma thread própria, na frente do SQL Server. No ZIP de teste do Dropbox, a leitura subiu de **14,6 MB/s para 95,9 MB/s** descompactados (cerca de 6,6 vezes mais), porque cada conexão sozinha era limitada a ~2,5 MB/s pelo servidor.

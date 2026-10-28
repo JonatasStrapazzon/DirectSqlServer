@@ -278,12 +278,12 @@ Todas as opções ficam sob o título **Configurações**, entre o nome da base 
 
 ## Opções ao terminar a restauração
 
-Em **AO TERMINAR QUALQUER RESTAURAÇÃO**, dentro de **Configurações**, valem para **via link e via arquivo**. Todas começam **desmarcadas** e a sua escolha fica salva (`%APPDATA%\DirectSqlServer\preferences.xml`), inclusive depois de reiniciar o PC.
+Em **AO TERMINAR QUALQUER RESTAURAÇÃO**, dentro de **Configurações**, valem para **via link e via arquivo**. Todas começam **desmarcadas**. A escolha de **Executar scripts** fica salva (`%APPDATA%\DirectSqlServer\preferences.xml`), inclusive depois de reiniciar o PC. A de **Reduzir o log não é lembrada**, de propósito, porque muda o modelo de recuperação da base: você marca de novo quando quiser.
 
 | Opção | O que faz |
 |---|---|
 | **Executar os scripts SQL salvos na base restaurada** | Roda os scripts do botão ✎ logo depois de restaurar com sucesso, sem pedir confirmação. Veja [Executar scripts SQL](#executar-scripts-sql-na-base-restaurada). |
-| **Reduzir o arquivo de log depois de restaurar** | Reduz o log da base restaurada para cerca de 256 MB (veja abaixo). |
+| **Reduzir o arquivo de log depois de restaurar** | Reduz o log da base restaurada para cerca de 256 MB (veja abaixo). **Não é lembrada**: começa sempre desmarcada, toda vez que o app abre. |
 
 Se uma etapa falhar, a base continua restaurada e a mensagem em vermelho explica o que não deu certo. Quando tudo dá certo, a mensagem final lista o que foi feito: "Base “X” restaurada, scripts executados, log reduzido."
 
