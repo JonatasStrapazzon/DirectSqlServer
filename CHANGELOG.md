@@ -1,8 +1,13 @@
 ﻿# Notas de versão
 
-## 1.10.1
+## 1.11.2
 
-Reúne as mudanças desde a 1.8.0 (as versões 1.9.x e 1.10.0 não foram publicadas).
+### Correções
+- **Restauração via link não desiste mais em backups grandes.** O app encerrava a restauração com "O SQL Server parou de responder ao dispositivo virtual" depois de cerca de 5 minutos de silêncio, mas antes de ler o backup o SQL Server cria e zera os arquivos da base, o que leva mais que isso em bases grandes (103 GB levaram mais de 6 minutos). Agora o app espera enquanto o SQL estiver trabalhando; você ainda pode **Cancelar**.
+- **Falha no meio da restauração limpa o que sobrou.** Se o `RESTORE` falhar antes de terminar, a base parcial `DirectSqlRestore_…` e os arquivos dela (às vezes mais de 100 GB) são removidos automaticamente, como já acontecia ao cancelar. Antes, ficavam na pasta de dados do SQL Server até serem apagados à mão.
+- **Registro mais limpo.** O contador de tempo da fase de preparação ("Decorrido 00:12…") aparece só na barra de status e não é mais gravado a cada segundo no registro; a fase é registrada uma vez, com os tamanhos.
+
+## 1.11.0 e 1.11.1
 
 ### Tela única: via link ou via arquivo
 - As duas abas viraram uma tela só. O cartão **01 Origem do backup** tem dois botões de opção: **Via link** (padrão) e **Via arquivo**. A linha de entrada muda conforme a escolha (link + **Ler link**, ou arquivo + **Selecionar…**), e a mensagem abaixo do botão **Restaurar base** também.

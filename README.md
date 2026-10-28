@@ -6,7 +6,7 @@ Aplicativo para **Windows** que restaura um backup do SQL Server em uma **base n
   <img src="docs/img/03-compactado-claro.png" alt="Janela principal do Direct SQL Server com um ZIP selecionado" width="520">
 </p>
 
-> **Versão atual: 1.10.1.** Veja o que mudou nas [notas de versão](CHANGELOG.md).
+> **Versão atual: 1.11.2.** Veja o que mudou nas [notas de versão](CHANGELOG.md).
 
 ## Sumário
 
@@ -257,7 +257,7 @@ Com **Via link** selecionado, o app restaura **direto de um link para um ZIP**, 
 - O servidor do link precisa aceitar **leitura parcial** (cabeçalho `Range`). O Dropbox aceita. Se o servidor não aceitar, o app avisa.
 - Restaura o **primeiro backup** do `.bak`. Para arquivos com vários backups, use **Via arquivo**.
 - Precisa de **administrador**. Em um app elevado, arrastar arquivos do Explorer para a janela não funciona (limitação do Windows); use **Selecionar…**.
-- Se a conexão cair no meio, a restauração falha e o app informa; a base interna parcial só fica para você apagar se o SQL não conseguir removê-la. A base com o nome que você escolheu só aparece quando tudo termina.
+- Se a conexão cair no meio, a restauração falha e o app informa; o app remove a base parcial `DirectSqlRestore_…` e os arquivos dela. Só fica algo para você apagar à mão se o SQL não conseguir removê-los (o registro avisa o caminho). A base com o nome que você escolheu só aparece quando tudo termina.
 - O link contém um código secreto: o app **não o grava** em log nem em arquivo.
 - As opções de exclusão de arquivos não se aplicam (não há arquivo extraído nem compactado no disco). As opções de **depois da restauração** valem normalmente.
 - Antes de começar, o app confere se há espaço livre para a base e recusa nomes de base já existentes.
