@@ -63,7 +63,7 @@ Se o arquivo `.bak` contiver vários backups completos da mesma base, o app usa 
 |---|---|
 | Sistema | Windows 10 ou 11, 64 bits |
 | .NET | **.NET 9 Desktop Runtime**. O instalador baixa e instala sozinho se você não tiver. |
-| SQL Server | Instância **padrão local** (`MSSQLSERVER`), acessível como `localhost` |
+| SQL Server | Instância **local**, padrão (`MSSQLSERVER`) ou **nomeada** (ex.: `SQLEXPRESS`), com o protocolo **Shared Memory** habilitado |
 | Permissões | Seu usuário do Windows precisa poder **restaurar bancos** e **listar os bancos existentes** |
 | Espaço em disco | O tamanho do backup extraído (se vier de um compactado) mais o espaço da nova base |
 
@@ -264,6 +264,18 @@ Com **Via link** selecionado, o app restaura **direto de um link para um ZIP**, 
 
 ## Configurações (opções da restauração)
 
+### Instância do SQL Server
+
+No topo de **Configurações** há o campo **Instância do SQL Server**.
+
+- **Vazio** usa a instância **padrão** (`MSSQLSERVER`). É o que a maioria dos computadores tem.
+- Para uma instância **nomeada**, digite só o nome, por exemplo `SQLEXPRESS`. A faixa verde no alto passa a mostrar `localhost\SQLEXPRESS`.
+- O campo mostra as instâncias encontradas neste computador. Se não existir instância padrão e houver **uma só** instância nomeada, o app já a usa sozinho e avisa.
+- O valor é lembrado depois de reiniciar o PC. Vale para a restauração, via link (o dispositivo virtual usa o mesmo nome) e para os scripts SQL.
+- O nome aceita letras, números e `_ $ # @`, até 16 caracteres.
+
+### Opções de restauração
+
 Todas as opções ficam sob o título **Configurações**, entre o nome da base e o botão **Restaurar base**. Clique em **▸ Configurações** para expandir e em **▾ Configurações** para recolher. Recolhido (o padrão), o título mostra quantas opções estão ativas, por exemplo "▸ Configurações · 2 opções ativas".
 
 <p align="center">
@@ -362,7 +374,7 @@ Se o serviço do SQL Server não tem permissão para ler o backup (comum em Down
 | Sintoma | O que fazer |
 |---|---|
 | **"Já existe uma base chamada…"** | Escolha outro nome. O app nunca substitui uma base existente. Se quiser trocar, renomeie ou exclua a antiga no SSMS antes. |
-| **Não conecta ao SQL Server** | O app usa a instância padrão local (`MSSQLSERVER`). Confirme que o serviço está iniciado e que o seu usuário do Windows tem permissão para restaurar bancos. |
+| **"Não foi possível conectar ao SQL Server local"** | 1) Veja o nome do serviço em `services.msc`: **SQL Server (MSSQLSERVER)** é a instância padrão; **SQL Server (SQLEXPRESS)** (ou outro nome) é uma instância **nomeada**. Para uma nomeada, abra **Configurações** e digite o nome em **Instância do SQL Server** (ex.: `SQLEXPRESS`). 2) Confirme que o serviço está iniciado e que o **Shared Memory** está habilitado no *SQL Server Configuration Manager → Configuração de Rede do SQL Server → Protocolos* (depois de habilitar, reinicie o serviço). 3) Confirme que o seu usuário do Windows pode restaurar bancos. O SSMS pode abrir normalmente e o app não, porque o SSMS aceita outros nomes e protocolos. |
 | **Backup de versão mais nova** | O SQL Server não restaura backup de versão superior à instalada. Atualize o SQL Server local ou restaure em outro servidor. |
 | **Backup criptografado** | Exige certificado ou chave já disponível no servidor. |
 | **Compactado com senha ou formato desconhecido** | O app mostra uma mensagem de erro e preserva o arquivo. Extraia manualmente e selecione o `.bak`. |
@@ -385,7 +397,7 @@ Isso remove o app, os atalhos e o menu do Explorer. **Suas bases, seus backups e
 
 - Restaura **backup completo** de um arquivo `.bak`, com dados e logs convencionais (MDF/NDF/LDF). **Diferenciais e backups de log não são aplicados.**
 - Para backup **dividido em vários arquivos**, `.bak` com backups de **bases diferentes**, FILESTREAM e arquivos especiais, snapshots e cadeias de recuperação, use o SSMS.
-- Só **instância padrão local** (`MSSQLSERVER`).
+- Só instâncias **deste computador** (padrão ou nomeada, por memória compartilhada). Servidores remotos não são suportados.
 - Compactados dentro de outros compactados não são percorridos (exceto TAR comprimido, como `.tar.gz`).
 - Arquivos GZ, BZ2 e XZ sem tamanho conhecido precisam ser lidos por inteiro antes da extração.
 - O app não é assinado digitalmente (veja o aviso do Windows na instalação).

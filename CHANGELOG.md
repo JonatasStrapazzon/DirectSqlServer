@@ -1,5 +1,13 @@
 ﻿# Notas de versão
 
+## 1.11.4
+
+### Instância nomeada do SQL Server
+- Antes o app só conectava na instância **padrão** (`MSSQLSERVER`), então falhava em computadores com `SQLEXPRESS` ou outra instância nomeada, mesmo com o SSMS abrindo normalmente. Agora há o campo **Instância do SQL Server** em **Configurações**: vazio = padrão; ou digite o nome (ex.: `SQLEXPRESS`).
+- O app mostra as instâncias encontradas e, se não houver instância padrão e existir uma só nomeada, usa essa automaticamente e avisa.
+- Vale para restauração via arquivo, via link (o dispositivo virtual recebe o nome da instância), scripts SQL e redução do log. A conta de serviço usada nas pastas temporárias também acompanha a instância (`MSSQL$NOME`).
+- A mensagem "Não foi possível conectar ao SQL Server local" agora orienta a conferir o Shared Memory e a informar a instância nomeada.
+
 ## 1.11.2
 
 ### Correções
