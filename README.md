@@ -6,7 +6,7 @@ Aplicativo para **Windows** que restaura um backup do SQL Server em uma **base n
   <img src="docs/img/03-compactado-claro.png" alt="Janela principal do Direct SQL Server com um ZIP selecionado" width="520">
 </p>
 
-> **Versão atual: 1.11.2.** Veja o que mudou nas [notas de versão](CHANGELOG.md).
+> **Versão atual: 1.12.0.** Veja o que mudou nas [notas de versão](CHANGELOG.md).
 
 ## Sumário
 
@@ -20,6 +20,9 @@ Aplicativo para **Windows** que restaura um backup do SQL Server em uma **base n
 - [Configurações (opções da restauração)](#configurações-opções-da-restauração)
 - [Opções ao terminar a restauração](#opções-ao-terminar-a-restauração)
 - [Cancelar uma restauração](#cancelar-uma-restauração)
+- [Notificação ao terminar](#notificação-ao-terminar)
+- [Integridade dos dados](#integridade-dos-dados)
+- [Sobras de restaurações interrompidas](#sobras-de-restaurações-interrompidas)
 - [Executar scripts SQL na base restaurada](#executar-scripts-sql-na-base-restaurada)
 - [Menu do botão direito no Explorer](#menu-do-botão-direito-no-explorer)
 - [Tema claro e escuro](#tema-claro-e-escuro)
@@ -41,6 +44,10 @@ Aplicativo para **Windows** que restaura um backup do SQL Server em uma **base n
 - **Nunca substitui nada:** se já existir uma base com o nome escolhido, a restauração é recusada e nada é alterado.
 - **Seguro por padrão:** conecta só no SQL Server **do próprio computador**, com a **autenticação do Windows**. Não pede nem guarda senha.
 - **Cancelar** a restauração a qualquer momento, removendo a base parcial.
+- **Integridade:** confere o CRC do ZIP sozinho e, se você quiser, roda o `DBCC CHECKDB` no fim.
+- **Aguenta queda de rede** no modo link: espera e continua de onde parou.
+- **Links** do Dropbox, Google Drive, OneDrive, SharePoint e S3.
+- **Avisa** quando termina (aviso do app e/ou notificação do Windows) e **limpa sobras** de restaurações interrompidas.
 - **Depois de restaurar (opcional):** executar scripts SQL salvos e **reduzir o arquivo de log**.
 - **Scripts SQL:** botão para rodar, e editar, comandos na base restaurada.
 - **Menu do Explorer:** botão direito no arquivo → *Restaurar no SQL Server…* (opcional).
@@ -98,7 +105,7 @@ No cartão **01 Origem do backup** há duas opções. A linha abaixo muda confor
 
 | Opção | Campo | O que faz |
 |---|---|---|
-| **Via link (ZIP lido pela rede)** | Cole o link e clique em **Ler link** | Lê o índice do ZIP pela rede e mostra o backup que está dentro dele. Veja [Via link](#via-link-restaurar-sem-baixar). |
+| **Via link (ZIP lido pela rede)** | Cole o link e clique em **Restaurar** | Lê o índice do ZIP pela rede e mostra o backup que está dentro dele. Veja [Via link](#via-link-restaurar-sem-baixar). |
 | **Via arquivo (.bak, ZIP, RAR ou 7z)** | Clique em **Selecionar…** ou arraste o arquivo para a janela | Usa um arquivo do disco. Veja [Via arquivo](#via-arquivo-backup-dentro-de-um-compactado). |
 
 <p align="center">
@@ -171,7 +178,7 @@ Com um compactado selecionado **via arquivo**, a caixa **AO RESTAURAR UM COMPACT
   <img src="docs/img/03-compactado-claro.png" alt="Opções de exclusão disponíveis com um compactado selecionado" width="460">
 </p>
 
-- As duas começam **desmarcadas** no primeiro uso e a sua escolha fica salva (`%APPDATA%\DirectSqlServer\preferences.xml`).
+- As duas começam **marcadas** para quem instala agora (quem já usava o app mantém o que escolheu) e a sua escolha fica salva (`%APPDATA%\DirectSqlServer\preferences.xml`).
 - **Só excluem após o sucesso.** Se a restauração falhar, o original e o `.bak` extraído são **preservados**, mesmo com as opções marcadas.
 - Antes de excluir o compactado, o app confere se ele é o mesmo arquivo que você selecionou; se outro programa o trocou ou alterou, **não é excluído**.
 
@@ -181,7 +188,7 @@ Se o Windows não deixar criar a pasta de extração ao lado do compactado (por 
 
 ## Cancelar uma restauração
 
-Enquanto a restauração roda (via link ou via arquivo), o botão **Cancelar** ocupa o lugar de **Executar scripts**, ao lado de **Restaurar base**.
+Enquanto a restauração roda (via link ou via arquivo), o botão **Cancelar**, ao lado de **Restaurar base** na aba **Restaurar**, fica ativo.
 
 1. Clique em **Cancelar** e confirme.
 2. O app interrompe a leitura (extração ou download) e o RESTORE no SQL Server.
@@ -190,16 +197,50 @@ Enquanto a restauração roda (via link ou via arquivo), o botão **Cancelar** o
 
 Cancelar não é instantâneo em backups enormes: o SQL Server precisa desfazer o que já gravou e apagar os arquivos da base parcial, o que pode levar de alguns segundos a alguns minutos.
 
+## Notificação ao terminar
+
+Quando uma restauração termina, é cancelada ou tem um problema, o app avisa. Em **Configurações → Geral → Notificação ao terminar** você escolhe como:
+
+| Opção | O que mostra |
+|---|---|
+| **App** | Um aviso flutuante do próprio app, no canto da tela (sempre no topo, sem tirar o foco de quem está digitando), com o botão **Abrir** que traz a janela de volta. Fecha sozinho em 10 segundos (para de contar com o mouse em cima) e tem um **X** para dispensar. |
+| **Windows** | A notificação padrão do Windows. Clicar nela traz o app de volta. |
+| **Ambas** | Os dois avisos. |
+| **Nenhuma** (padrão) | Não avisa. |
+
+O botão **Testar** mostra na hora a notificação escolhida. O aviso aparece mesmo com a janela à vista. A cor da faixa indica o resultado: verde (concluída), amarelo (cancelada) ou vermelho (problema).
+
+<p align="center">
+  <img src="docs/img/20-aviso-concluida-claro.png" alt="Aviso flutuante do app: Restauração concluída" width="420">
+</p>
+
+## Integridade dos dados
+
+Duas conferências protegem contra backup ou download corrompido:
+
+1. **CRC do ZIP, automático.** Um ZIP guarda uma soma de verificação (CRC-32) de cada arquivo. O app a confere sempre que lê um `.bak` de dentro de um ZIP, via link ou via arquivo. Se não bater, a restauração é **abortada antes de terminar**, a base parcial é removida e a mensagem diz que o arquivo está corrompido. No fim, o registro diz "CRC-32 do ZIP conferido" (ou "não conferido" quando o SQL Server não leu o arquivo até o fim, caso de um `.bak` com mais de um backup).
+2. **DBCC CHECKDB, opcional.** Na aba **Configurações**, marque **DBCC CHECKDB depois**. O SQL Server examina todas as páginas da base. Se achar problemas, a mensagem aparece em vermelho com os detalhes e a base continua disponível (nada é apagado).
+
+Nenhuma das duas substitui o backup original estar saudável: se o backup foi gerado com problema, o `CHECKDB` é a forma de saber.
+
+## Sobras de restaurações interrompidas
+
+Se o app for fechado à força, o PC desligar ou o SQL Server reiniciar no meio de uma restauração, podem sobrar na pasta de dados do SQL Server uma base parcial (`DirectSqlRestore_…`, em "Restaurando") e arquivos `restore_…` que nenhuma base usa, às vezes dezenas de GB.
+
+- **Ao abrir**, o app procura essas sobras. Se achar, pergunta: "Encontrei restos de restaurações interrompidas… Apagar agora?". Você escolhe **Sim** ou **Não**.
+- **Pela aba Manutenção**, em **Limpar arquivos sobrando → Procurar**, você pode procurar quando quiser.
+- Só são considerados arquivos com o **nome criado pelo app** (`restore_<nome>_<código>_N.mdf/ndf/ldf`), que **nenhuma base usa** e com mais de 2 minutos. Nada é apagado enquanto houver uma restauração em andamento. Arquivos de qualquer outra base, ou com nome diferente, nunca são tocados.
+
 ## Executar scripts SQL na base restaurada
 
-Ao lado de **Restaurar base** há o botão **Executar scripts** e um lápis para editá-los. Eles rodam comandos SQL na base indicada em **Nome da nova base**, por exemplo para ajustar dados logo depois de restaurar um backup de produção.
+A aba **Scripts SQL** tem o editor dos comandos e os botões **Executar scripts**, **Salvar** e **Restaurar padrão**. Os comandos rodam na base indicada em **Nome da nova base** (aba **Restaurar**), por exemplo para ajustar dados logo depois de restaurar um backup de produção.
 
-1. **Veja ou altere os comandos:** clique no **lápis**. Abre uma janela com os scripts salvos (na primeira vez, o padrão do app). Edite como quiser e clique em **Salvar**. **Restaurar padrão** volta ao texto original.
-2. **Execute:** confira o nome da base e clique em **Executar scripts**. O app pede confirmação mostrando o nome da base e quantos lotes serão executados.
+1. **Veja ou altere os comandos:** abra a aba **Scripts SQL**. O editor mostra os scripts salvos (na primeira vez, o padrão do app). Edite como quiser e clique em **Salvar**; o título da aba ganha um ponto (**Scripts SQL •**) enquanto há alterações não salvas. **Restaurar padrão** volta ao texto original.
+2. **Execute:** confira o nome da base e clique em **Executar scripts**. Se houver alterações não salvas, o app as salva antes. Ele pede confirmação mostrando o nome da base e quantos lotes serão executados.
 3. **Resultado:** os detalhes abrem sozinhos mostrando cada lote e quantas linhas cada comando afetou.
 
 <p align="center">
-  <img src="docs/img/10-editar-scripts-claro.png" alt="Janela de edição dos scripts SQL" width="560">
+  <img src="docs/img/17-aba-scripts-claro.png" alt="Aba Scripts SQL com o editor e os botões" width="460">
 </p>
 
 <p align="center">
@@ -208,7 +249,7 @@ Ao lado de **Restaurar base** há o botão **Executar scripts** e um lápis para
 
 ### Executar automaticamente depois de restaurar
 
-Marcando **Executar os scripts SQL salvos na base restaurada**, o app roda os scripts salvos logo depois de **restaurar com sucesso**, sem pedir confirmação nem precisar clicar em **Executar scripts**.
+Marcando **Executar os scripts SQL salvos**, o app roda os scripts salvos logo depois de **restaurar com sucesso**, sem pedir confirmação nem precisar clicar em **Executar scripts**.
 
 - **Desmarcada por padrão.** A escolha fica salva em `%APPDATA%\DirectSqlServer\preferences.xml` e continua depois de reiniciar o PC.
 - **Vale via arquivo e via link.**
@@ -234,9 +275,9 @@ Com **Via link** selecionado, o app restaura **direto de um link para um ZIP**, 
 
 **Passo a passo**
 1. Com **Via link** selecionado, o app mostra um aviso se não estiver como administrador (o dispositivo virtual exige isso). Clique em **Reiniciar como administrador**, aceite o pedido do Windows e o app reabre.
-2. Cole o **link público (https)** de um `.zip` e clique em **Ler link**. Com o Dropbox, use o link com `dl=1` no final.
-3. O app lê só o índice do ZIP e mostra o backup que está dentro dele, no cartão do nome. Se houver mais de um `.bak`, abre uma janela para você escolher. O nome da base é sugerido a partir do nome do `.bak`.
-4. Confira o nome da nova base e clique em **Restaurar base**. A barra mostra quanto já foi lido da rede, a velocidade e o tempo restante.
+2. Cole o **link público (https)** de um `.zip`. Com o Dropbox, use o link com `dl=1` no final. Informe o **Nome da base** (se deixar vazio, o app usa o nome do `.bak`).
+3. Clique em **Restaurar**. O primeiro passo é ler só o índice do ZIP pela rede. Se houver mais de um `.bak`, abre uma janela para você escolher.
+4. A restauração segue sozinha. A barra mostra quanto já foi lido da rede, a velocidade e o tempo restante.
 
 <p align="center">
   <img src="docs/img/14-link-preparando-claro.png" alt="Fase de preparação dos arquivos da base no SQL Server" width="460">
@@ -252,12 +293,26 @@ Com **Via link** selecionado, o app restaura **direto de um link para um ZIP**, 
 
 **O que você economiza.** Hoje, com um ZIP de 50 GB e um backup de 100 GB, o pico de disco chega a cerca de 250 GB (ZIP + pasta extraída + base). Restaurando do link, o pico é só o da **base (100 GB)**.
 
+**Links aceitos.** Cole o link de compartilhamento como ele vem; o app converte para o endereço de download:
+
+| Serviço | O que o app faz |
+|---|---|
+| **Dropbox** | Troca `dl=0` por `dl=1` (ou acrescenta). |
+| **Google Drive** | Aceita `drive.google.com/file/d/…/view`, `open?id=…` e `uc?id=…`; o arquivo precisa estar com "Qualquer pessoa com o link". |
+| **OneDrive** (`1drv.ms`, `onedrive.live.com`) | Usa a API de links de compartilhamento do OneDrive. |
+| **SharePoint / OneDrive empresarial** | Acrescenta `download=1`. |
+| **Amazon S3** | Links pré-assinados funcionam como estão. |
+| **Qualquer outro link direto** | Usado como está. |
+
+Se o link abrir uma **página da web** (login, aviso do serviço) em vez do arquivo, o app avisa isso. O modo precisa que o servidor aceite leitura parcial (`Range`): Dropbox e S3 aceitam; Google Drive e OneDrive foram preparados, mas o comportamento deles depende do serviço.
+
 **Limites do modo link**
 - Só **ZIP**. RAR e 7z não podem ser lidos em partes pela rede.
 - O servidor do link precisa aceitar **leitura parcial** (cabeçalho `Range`). O Dropbox aceita. Se o servidor não aceitar, o app avisa.
 - Restaura o **primeiro backup** do `.bak`. Para arquivos com vários backups, use **Via arquivo**.
 - Precisa de **administrador**. Em um app elevado, arrastar arquivos do Explorer para a janela não funciona (limitação do Windows); use **Selecionar…**.
-- Se a conexão cair no meio, a restauração falha e o app informa; o app remove a base parcial `DirectSqlRestore_…` e os arquivos dela. Só fica algo para você apagar à mão se o SQL não conseguir removê-los (o registro avisa o caminho). A base com o nome que você escolheu só aparece quando tudo termina.
+- **Se a rede cair**, o app **espera e continua de onde parou**: avisa "Sem conexão com o servidor do link há 00:42. Tentando de novo", e quando a conexão volta a restauração segue sem recomeçar nem perder dados. Ele só desiste depois de **30 minutos** sem conseguir nada, ou se o servidor passar a recusar o acesso (link expirado ou removido).
+- Se a restauração falhar de outro jeito, o app remove a base parcial `DirectSqlRestore_…` e os arquivos dela. Só fica algo para você apagar à mão se o SQL não conseguir removê-los (o registro avisa o caminho).
 - O link contém um código secreto: o app **não o grava** em log nem em arquivo.
 - As opções de exclusão de arquivos não se aplicam (não há arquivo extraído nem compactado no disco). As opções de **depois da restauração** valem normalmente.
 - Antes de começar, o app confere se há espaço livre para a base e recusa nomes de base já existentes.
@@ -266,7 +321,7 @@ Com **Via link** selecionado, o app restaura **direto de um link para um ZIP**, 
 
 ### Instância do SQL Server
 
-No topo de **Configurações** há o campo **Instância do SQL Server**.
+Na aba **Configurações**, no canto superior esquerdo, há o campo **Instância do SQL Server**.
 
 - **Vazio** usa a instância **padrão** (`MSSQLSERVER`). É o que a maioria dos computadores tem.
 - Para uma instância **nomeada**, digite só o nome, por exemplo `SQLEXPRESS`. A faixa verde no alto passa a mostrar `localhost\SQLEXPRESS`.
@@ -276,23 +331,41 @@ No topo de **Configurações** há o campo **Instância do SQL Server**.
 
 ### Opções de restauração
 
-Todas as opções ficam sob o título **Configurações**, entre o nome da base e o botão **Restaurar base**. Clique em **▸ Configurações** para expandir e em **▾ Configurações** para recolher. Recolhido (o padrão), o título mostra quantas opções estão ativas, por exemplo "▸ Configurações · 2 opções ativas".
+A janela tem quatro abas no topo: **Restaurar**, **Scripts SQL**, **Configurações** e **Manutenção**. As opções ficam na aba **Configurações**, em quatro sessões: **Conexão com o SQL Server** (instância e autenticação), **Geral** (**Verificar CRC do ZIP** e **Notificação ao terminar**), **Ao terminar a restauração** (**DBCC CHECKDB depois**, **Rodar scripts depois** e **Reduzir log**) e **Arquivos compactados** (**Apagar ZIP após restaurar** e **Apagar .bak extraído após restaurar**, só via arquivo). Passe o mouse sobre cada uma para ver a explicação. **Verificar CRC do ZIP** já vem marcada e a notificação vem em **Nenhuma**.
 
 <p align="center">
-  <img src="docs/img/15-configuracoes-recolhidas-claro.png" alt="Configurações recolhidas, mostrando 2 opções ativas" width="460">
+  <img src="docs/img/16-configuracoes-abertas-claro.png" alt="Aba Configurações com as opções em duas colunas" width="460">
 </p>
 
+### Autenticação do SQL Server (usuário e senha)
+
+Por padrão o app entra no SQL Server com o **usuário do Windows** que o abriu. Em **Configurações → Conexão com o SQL Server** dá para escolher **SQL Server** em **Autenticação** e informar **Usuário** (começa em `sa`) e **Senha**. O campo **Instância SQL** mostra `MSSQLSERVER` (a instância padrão) quando está vazio.
+
+- **Lembrar a senha neste computador:** desmarcado (padrão), o app pede a senha de novo toda vez que abrir. Marcado, a senha fica guardada **criptografada** (Windows DPAPI), legível só pelo seu usuário do Windows neste computador; nunca em texto puro.
+- **Testar conexão:** mostra com qual usuário entrou e a versão do SQL Server, ou o motivo da falha.
+- A instância precisa aceitar autenticação do SQL Server (modo misto). A conexão continua sendo local, por memória compartilhada.
+- Ao usar **Reiniciar como administrador** (via link) sem lembrar a senha, digite a senha de novo depois que o app reabrir.
+
 <p align="center">
-  <img src="docs/img/16-configuracoes-abertas-claro.png" alt="Configurações expandidas com as opções de exclusão, scripts e redução do log" width="460">
+  <img src="docs/img/19-configuracoes-login-sql-claro.png" alt="Configurações com a autenticação do SQL Server (usuário e senha)" width="460">
+</p>
+
+### Aba Manutenção
+
+Reúne o que antes ficava no rodapé: **Limpar arquivos sobrando → Varrer** (procurar sobras), **Atualizações → Verificar** (consulta agora) e **Instalar / desinstalar atalho** (o botão muda entre **Instalar** e **Remover** o menu do botão direito).
+
+<p align="center">
+  <img src="docs/img/18-aba-manutencao-claro.png" alt="Aba Manutenção" width="460">
 </p>
 
 ## Opções ao terminar a restauração
 
-Em **AO TERMINAR QUALQUER RESTAURAÇÃO**, dentro de **Configurações**, valem para **via link e via arquivo**. Todas começam **desmarcadas**. A escolha de **Executar scripts** fica salva (`%APPDATA%\DirectSqlServer\preferences.xml`), inclusive depois de reiniciar o PC. A de **Reduzir o log não é lembrada**, de propósito, porque muda o modelo de recuperação da base: você marca de novo quando quiser.
+Em **AO TERMINAR QUALQUER RESTAURAÇÃO**, dentro de **Configurações**, valem para **via link e via arquivo**. No primeiro uso, **Rodar scripts depois** vem marcada; **DBCC CHECKDB depois** e **Reduzir log** vêm desmarcadas (quem já usava o app mantém o que escolheu). A escolha de **Executar scripts** fica salva (`%APPDATA%\DirectSqlServer\preferences.xml`), inclusive depois de reiniciar o PC. A de **Reduzir o log não é lembrada**, de propósito, porque muda o modelo de recuperação da base: você marca de novo quando quiser.
 
 | Opção | O que faz |
 |---|---|
-| **Executar os scripts SQL salvos na base restaurada** | Roda os scripts do botão ✎ logo depois de restaurar com sucesso, sem pedir confirmação. Veja [Executar scripts SQL](#executar-scripts-sql-na-base-restaurada). |
+| **Verificar integridade (DBCC CHECKDB)** | Roda o `DBCC CHECKDB` do SQL Server na base restaurada, com porcentagem e tempo restante. Pode levar muito tempo em bases grandes e dá para **Cancelar** só a verificação (a base continua restaurada). É a **primeira** etapa, antes dos scripts. Veja [Integridade dos dados](#integridade-dos-dados). |
+| **Executar os scripts SQL salvos** | Roda os scripts da aba Scripts SQL logo depois de restaurar com sucesso, sem pedir confirmação. Veja [Executar scripts SQL](#executar-scripts-sql-na-base-restaurada). |
 | **Reduzir o arquivo de log depois de restaurar** | Reduz o log da base restaurada para cerca de 256 MB (veja abaixo). **Não é lembrada**: começa sempre desmarcada, toda vez que o app abre. |
 
 Se uma etapa falhar, a base continua restaurada e a mensagem em vermelho explica o que não deu certo. Quando tudo dá certo, a mensagem final lista o que foi feito: "Base “X” restaurada, scripts executados, log reduzido."
@@ -313,7 +386,7 @@ Cuidados:
 
 ## Menu do botão direito no Explorer
 
-Opcional. No rodapé da janela, clique em **Adicionar ao menu do Windows**. Depois, no Explorer:
+Opcional. Na aba **Manutenção**, em **Instalar / desinstalar atalho**, clique em **Instalar**. Depois, no Explorer:
 
 1. Clique com o botão direito em um `.bak`, `.zip`, `.rar` ou `.7z`.
 2. No Windows 11, escolha **Mostrar mais opções**.
@@ -331,16 +404,16 @@ O botão no canto superior direito alterna entre **Tema escuro** e **Tema claro*
 
 ## Atualizações automáticas
 
-Ao abrir, o app verifica em segundo plano se há versão nova. Quando houver, o link do rodapé muda para **Nova versão X disponível: atualizar agora**.
+Ao abrir, e **a cada 6 horas** enquanto o app ficar aberto, ele verifica em segundo plano se há versão nova. O canto direito do cabeçalho mostra sempre o resultado: **Nova versão X disponível: atualizar agora** ou **vX · atualizada**, sem precisar clicar para conferir.
 
 <p align="center">
-  <img src="docs/img/07-atualizacao-disponivel-claro.png" alt="Rodapé avisando que há uma nova versão" width="460">
+  <img src="docs/img/07-atualizacao-disponivel-claro.png" alt="Aviso de nova versão acima das abas" width="460">
 </p>
 
 1. Clique no link. O app baixa a atualização (mostrando o progresso).
 2. Ao terminar, ele **reinicia sozinho** já na versão nova.
 
-O link **Verificar atualizações** também permite checar manualmente. Ele só aparece no app instalado pelo instalador. Se houver uma restauração em andamento, a atualização espera você terminar.
+Além da verificação automática, a aba **Manutenção** tem o botão fixo **Verificar**, que consulta na hora (e responde também com "Você já está na versão mais recente"). Ele funciona só no app instalado pelo instalador; numa cópia executada de uma pasta, o app avisa isso. Se houver uma restauração em andamento, a atualização espera você terminar.
 
 Suas preferências, tema e registros ficam fora da pasta do app e **não são apagados** na atualização.
 
@@ -382,7 +455,7 @@ Se o serviço do SQL Server não tem permissão para ler o backup (comum em Down
 | **Segunda base com o mesmo nome criada por outra ferramenta durante a restauração** | A base externa fica intacta e a sua restauração permanece com o nome interno, informado nos detalhes. |
 | **"O Windows protegeu o computador"** | Veja [o aviso na instalação](#aviso-o-windows-protegeu-o-computador). |
 | **O menu do botão direito não aparece** | No Windows 11, use **Mostrar mais opções**. Se ainda assim faltar, clique em **Adicionar ao menu do Windows** de novo. |
-| **O app não atualiza** | Confira a internet e clique em **Verificar atualizações**. A mensagem de erro aparece na barra de status. |
+| **O app não atualiza** | Confira a internet e abra a aba **Manutenção** e clique em **Verificar**. A mensagem de erro aparece na barra de status. |
 
 Em caso de dúvida, abra o arquivo mais recente em `%LOCALAPPDATA%\DirectSqlServer\Logs`: ele traz o passo a passo e o erro completo.
 

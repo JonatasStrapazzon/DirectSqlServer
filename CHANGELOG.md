@@ -1,6 +1,36 @@
 ﻿# Notas de versão
 
-## 1.11.4
+## 1.12.0
+
+### Layout
+- Janela com **abas no topo**: Restaurar, Scripts SQL, Configurações e Manutenção.
+- **Scripts SQL** virou aba, com o editor embutido (Executar scripts, Salvar, Restaurar padrão); a janela separada do lápis deixou de existir.
+- **Configurações** deixou de ser o card recolhível: ficam em duas colunas, e o título da aba mostra quantas opções estão ativas.
+- **Manutenção** reúne o que estava no rodapé: procurar sobras, verificar atualizações e a integração com o menu do Windows.
+- Via link não tem mais o botão **Ler link**: o **Restaurar** lê o índice do ZIP como primeiro passo (e deixa escolher o `.bak` se houver mais de um).
+- **Autenticação do SQL Server:** em Configurações, além do Windows (padrão), dá para entrar com usuário (`sa` por padrão) e senha, com **Testar conexão**. A senha só é lembrada se você pedir, criptografada (DPAPI). O campo de instância mostra `MSSQLSERVER` quando é a padrão.
+- **Notificação ao terminar** configurável: aviso do **App** (flutuante, no estilo do PRNotifier, com botão Abrir), notificação do **Windows**, **Ambas** ou **Nenhuma** (padrão), com botão **Testar**. O aviso do Windows agora aparece também com a janela à vista.
+- Visual novo: cabeçalho enxuto (ícone, nome e versão), **Via link / Via arquivo** em botões, campo **Nome da base**, cartão de andamento com velocidade e tempo à direita e barra fina, botões arredondados e caixas com "v".
+- **Configurações** ganhou **Verificar CRC do ZIP** e **Avisar no Windows ao terminar** (ambas ligadas por padrão); as explicações ficam em dicas ao passar o mouse.
+- O botão **Cancelar** agora é próprio, ao lado de **Restaurar base**; o aviso de versão fica acima das abas.
+- Se a conexão ficar muda (cabo desligado), a tela avisa em ~5 s "Sem receber dados do servidor há mm:ss…", em vez de só depois do tempo limite de 60 s.
+
+### Integridade
+- **Conferência do CRC do ZIP**, via link e via arquivo (a biblioteca do .NET não conferia). Um arquivo corrompido aborta a restauração antes do fim, remove a base parcial e diz que o ZIP está corrompido. O registro informa se o CRC foi conferido.
+- Nova opção **Verificar a integridade da base depois de restaurar (DBCC CHECKDB)**, com porcentagem e tempo restante, cancelável. Roda antes dos scripts e da redução do log.
+
+### Rede
+- **A restauração via link continua depois de uma queda de rede.** O app espera, avisa ("Sem conexão com o servidor do link há 00:42…") e continua de onde parou; só desiste após 30 minutos sem conexão ou se o servidor recusar o acesso (link expirado).
+- Links do **Google Drive**, **OneDrive**, **SharePoint** e **S3** (além do Dropbox) são convertidos para o endereço de download. Um link que abre uma página da web em vez do arquivo agora é identificado com uma mensagem clara.
+
+### Sobras
+- **Varredura de sobras** ao abrir e pelo link "Procurar sobras": acha bases parciais `DirectSqlRestore_…` e arquivos `restore_…` de restaurações interrompidas à força e oferece apagar. Só mexe em nomes criados pelo app, que nenhuma base usa.
+
+### Avisos
+- **Notificação do Windows** quando uma restauração termina, é cancelada ou tem problema e a janela não está à vista.
+- **Atualizações:** o app verifica ao abrir e **a cada 6 horas**, e o rodapé mostra o resultado ("Nova versão X disponível" ou "Versão X · atualizada"). Continua havendo o botão **Verificar atualizações** no rodapé para checar na hora.
+
+## 1.11.4 (instância nomeada)
 
 ### Instância nomeada do SQL Server
 - Antes o app só conectava na instância **padrão** (`MSSQLSERVER`), então falhava em computadores com `SQLEXPRESS` ou outra instância nomeada, mesmo com o SSMS abrindo normalmente. Agora há o campo **Instância do SQL Server** em **Configurações**: vazio = padrão; ou digite o nome (ex.: `SQLEXPRESS`).
